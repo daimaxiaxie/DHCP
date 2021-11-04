@@ -3,4 +3,4 @@ project(DHCP)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(DHCP main.cpp)
+add_executable(DHCP main.cpp header.h)
