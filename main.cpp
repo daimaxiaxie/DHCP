@@ -40,5 +40,6 @@ void UDPListen() {
 
 int main(int argc, char **argv) {
     Init();
+    Clean();
     return 0;
 }

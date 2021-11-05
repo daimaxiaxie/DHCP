@@ -9,18 +9,26 @@
 #include <cstring>
 
 void Init();
+void Clean();
 
 #if defined(WIN32) || defined(_WIN64)
 #include <WINSOCK2.h>
+#include <WS2tcpip.h>
+
 #pragma comment(lib, "ws2_32.lib")
 
 void Init(){
    WSADATA wsaData;
    if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
        std::cout << "Can't initial windows socket!" << std::endl;
+       WSACleanup();
        exit(0);
    }
    std::cout << "DHCP Test for Windows" << std::endl;
+}
+
+void Clean() {
+    WSACleanup();
 }
 
 #elif linux
@@ -32,6 +40,10 @@ void Init(){
 
 void Init() {
     std::cout << "DHCP Test for Linux" << std::endl;
+}
+
+void Clean() {
+
 }
 
 #endif
