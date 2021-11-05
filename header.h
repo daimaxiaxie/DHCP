@@ -6,6 +6,8 @@
 #define DHCP_HEADER_H
 
 #include <iostream>
+#include <cstring>
+
 void Init();
 
 #if defined(WIN32) || defined(_WIN64)
@@ -23,7 +25,9 @@ void Init(){
 
 #elif linux
 
+#include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <sys/types.h>
 
 void Init() {
