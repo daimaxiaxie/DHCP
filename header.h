@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <cstring>
+#include <thread>
+#include <atomic>
 
 void Init();
 void Clean();

@@ -3,4 +3,8 @@ project(DHCP)
 
 set(CMAKE_CXX_STANDARD 14)
 
+find_package(Threads)
+
 add_executable(DHCP main.cpp header.h)
+
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
