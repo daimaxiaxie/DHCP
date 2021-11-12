@@ -40,11 +40,11 @@ void Clean() {
 #include <arpa/inet.h>
 #include <sys/types.h>
 
-void Init() {
+inline void Init() {
     std::cout << "DHCP Test for Linux" << std::endl;
 }
 
-void Clean() {
+inline void Clean() {
 
 }
 
