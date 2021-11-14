@@ -7,6 +7,19 @@
 
 #include "header.h"
 
+const unsigned int Magic = 0x63825363;
+
+enum Type {
+    Discover,
+    Offer,
+    Request,
+    Decline,
+    ACK,
+    NAK,
+    Release,
+    Inform,
+};
+
 struct Option {
     char op;
     char len;
@@ -44,9 +57,11 @@ public:
     const Message *parse(char *data, int len);
 
 private:
-    char *buf;
+    unsigned char *buf;
     int size;
     Message *msg;
+    bool cookie;
+    std::vector<Option> options;
 };
 
 

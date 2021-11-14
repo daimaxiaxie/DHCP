@@ -9,6 +9,7 @@
 #include <cstring>
 #include <thread>
 #include <atomic>
+#include <vector>
 
 void Init();
 void Clean();

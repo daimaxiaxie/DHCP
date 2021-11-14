@@ -21,13 +21,13 @@ std::ostream &operator<<(std::ostream &out, const Message &message) {
     return out;
 }
 
-DHCPParse::DHCPParse() : size(512) {
-    buf = new char[512];
+DHCPParse::DHCPParse() : size(512), cookie(false) {
+    buf = new unsigned char[512];
     msg = (Message *) buf;
 }
 
-DHCPParse::DHCPParse(int size) : size(512) {
-    buf = new char[size];
+DHCPParse::DHCPParse(int size) : size(512), cookie(false) {
+    buf = new unsigned char[size];
     msg = (Message *) buf;
 }
 
@@ -46,9 +46,64 @@ const Message *DHCPParse::parse(char *data, int len) {
         throw std::out_of_range("DHCP parse : too large");
         //return;
     }
+    if (len < sizeof(Message)) {
+        throw std::length_error("DHCP parse : data incomplete");
+    }
     memcpy(buf, data, len);
     Debug((unsigned char *) buf, len);
-    //std::cout << std::dec << buf[20] << " " << buf[21] << " " << buf[22] << " " << buf[23] << std::endl;
+    if (len > sizeof(Message)) {
+        int pos = 236;
+        if (len > sizeof(Message) + 4 && ntohl(*((unsigned int *) &buf[pos])) == Magic) {
+            cookie = true;
+            pos += 4;
+        }
+        //std::cout << int(buf[pos]) << " " << int(buf[pos + 1]) << " " << int(buf[pos + 2]) << std::endl;
+        while (pos < len) {
+            int length = 0;
+            //std::cout << int(buf[pos]) << std::endl;
+            switch (buf[pos]) {
+                case 0:
+                    break;
+                case 53:
+                    switch (buf[pos + 2]) {
+                        case 1:
+                            std::cout << "DHCP Discover" << std::endl;
+                            break;
+                        case 2:
+                            std::cout << "DHCP Offer" << std::endl;
+                            break;
+                        case 3:
+                            std::cout << "DHCP Request" << std::endl;
+                            break;
+                        case 4:
+                            std::cout << "DHCP Decline" << std::endl;
+                            break;
+                        case 5:
+                            break;
+                        case 6:
+                            break;
+                        case 7:
+                            break;
+                        case 8:
+                            break;
+                        default:
+                            std::clog << "DHCP parse : unknown DHCP msg type" << std::endl;
+                            break;
+                    }
+                    pos += 3;
+                    break;
+                default:
+                    length = int(buf[pos + 1]);
+                    std::clog << "DHCP parse : unknown option type " << int(buf[pos]) << " : ";
+                    for (int i = 0; i < length; ++i) {
+                        std::clog << int(buf[pos + 2 + i]) << " ";
+                    }
+                    std::clog << std::endl;
+                    pos += length;
+                    return msg;
+            }
+        }
+    }
     return msg;
 }
 
@@ -63,7 +118,7 @@ void Debug(unsigned char *data, int len) {
             }
             std::cout << std::endl;
         }
-        std::cout << int(data[i]) << "\t ";
+        std::cout << (unsigned int) data[i] << "\t ";
     }
     std::cout << std::endl;
 }
