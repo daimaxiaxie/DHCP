@@ -5,6 +5,7 @@
 #ifndef DHCP_HEADER_H
 #define DHCP_HEADER_H
 
+#include <iterator>
 #include <iostream>
 #include <cstring>
 #include <thread>
