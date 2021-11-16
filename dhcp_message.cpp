@@ -58,176 +58,90 @@ const Message *DHCPParse::parse(char *data, int len) {
             pos += 4;
         }
         //std::cout << int(buf[pos]) << " " << int(buf[pos + 1]) << " " << int(buf[pos + 2]) << std::endl;
-        while (pos < len) {
-            int length = 0;
-            //std::cout << int(buf[pos]) << std::endl;
-            switch (buf[pos]) {
-                case 1: {
-                    std::vector<unsigned short> mask(&buf[pos + 2], &buf[pos + 5]);
-                    std::cout << "Subnet mask : ";
-                    std::copy(mask.begin(), mask.end(), std::ostream_iterator<unsigned short>(std::cout, "."));
-                    std::cout << std::endl;
-                    pos += 6;
-                    break;
-                }
-                case 3: {
-                    std::cout << "Default gateway : ";
-                    for (int i = 0; i < buf[pos + 1]; i += 4) {
-                        std::vector<unsigned short> gateway(&buf[pos + 2 + i], &buf[pos + 5 + i]);
-                        std::copy(gateway.begin(), gateway.end(),
-                                  std::ostream_iterator<unsigned short>(std::cout, "."));
-                        std::cout << std::endl;
-                    }
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 6: {
-                    std::cout << "DNS server : ";
-                    for (int i = 0; i < buf[pos + 1]; i += 4) {
-                        std::vector<unsigned short> dns(&buf[pos + 2 + i], &buf[pos + 5 + i]);
-                        std::copy(dns.begin(), dns.end(), std::ostream_iterator<unsigned short>(std::cout, "."));
-                        std::cout << std::endl;
-                    }
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 12: {
-                    std::cout << "Host Name : " << std::string(&buf[pos + 2], &buf[pos + buf[pos + 1] + 2])
-                              << std::endl;
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 15: {
-                    std::cout << "Domain name : ";
-                    std::cout << std::string(&buf[pos + 2], &buf[pos + buf[pos + 1] + 2]) << std::endl;
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 42: {
-                    std::cout << "NTP server : ";
-                    for (int i = 0; i < buf[pos + 1]; i += 4) {
-                        std::vector<unsigned short> tmp(&buf[pos + 2 + i], &buf[pos + 5 + i]);
-                        std::copy(tmp.begin(), tmp.end(), std::ostream_iterator<unsigned short>(std::cout, "."));
-                        std::cout << std::endl;
-                    }
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 44: {
-                    std::cout << "WINS server : ";
-                    for (int i = 0; i < buf[pos + 1]; i += 4) {
-                        std::vector<unsigned short> tmp(&buf[pos + 2 + i], &buf[pos + 5 + i]);
-                        std::copy(tmp.begin(), tmp.end(), std::ostream_iterator<unsigned short>(std::cout, "."));
-                        std::cout << std::endl;
-                    }
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 50: {
-                    in_addr addr;
-                    std::memcpy(&addr, &buf[pos + 2], 4);
-                    std::cout << "Requested IP Address : " << inet_ntoa(addr) << std::endl;
-                    pos += 6;
-                    break;
-                }
-                case 51: {
-                    std::cout << "Valid lease : " << ntohl(*((unsigned int *) &buf[pos + 2])) << " s" << std::endl;
-                    pos += 6;
-                    break;
-                }
-                case 53: {
-                    switch (buf[pos + 2]) {
-                        case 1:
-                            std::cout << "DHCP Discover" << std::endl;
-                            break;
-                        case 2:
-                            std::cout << "DHCP Offer" << std::endl;
-                            break;
-                        case 3:
-                            std::cout << "DHCP Request" << std::endl;
-                            break;
-                        case 4:
-                            std::cout << "DHCP Decline" << std::endl;
-                            break;
-                        case 5:
-                            break;
-                        case 6:
-                            break;
-                        case 7:
-                            break;
-                        case 8:
-                            break;
-                        default:
-                            std::clog << "DHCP parse : unknown DHCP msg type" << std::endl;
-                            break;
-                    }
-                    pos += 3;
-                    break;
-                }
-                case 55: {
-                    std::cout << "Parameter Request List : ";
-                    for (int i = 0; i < buf[pos + 1]; ++i) {
-                        if (i % 8 == 0 && i != 0) {
-                            std::cout << std::endl;
-                        }
-                        std::cout << (unsigned short) buf[pos + 2 + i] << "\t ";
-                    }
-                    std::cout << std::endl;
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 57: {
-                    std::cout << "Maximum DHCP Message Size : " << ntohl(*((unsigned short *) &buf[pos + 2]))
-                              << std::endl;
-                    pos += 4;
-                    break;
-                }
-                case 58: {
-                    std::cout << "Renewal Time Value : " << ntohl(*((unsigned int *) &buf[pos + 2])) << " s"
-                              << std::endl;
-                    pos += 6;
-                    break;
-                }
-                case 60: {
-                    std::cout << "Vendor class identifier : ";
-                    for (int i = 0; i < buf[pos + 1]; ++i) {
-                        if (i % 8 == 0 && i != 0) {
-                            std::cout << std::endl;
-                        }
-                        std::cout << (unsigned short) buf[pos + 2 + i] << "\t ";
-                    }
-                    std::cout << std::endl;
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 61: {
-                    std::cout << "Client identifier : ";
-                    for (int i = 0; i < buf[pos + 1]; ++i) {
-                        if (i % 8 == 0 && i != 0) {
-                            std::cout << std::endl;
-                        }
-                        std::cout << (unsigned short) buf[pos + 2 + i] << "\t ";
-                    }
-                    std::cout << std::endl;
-                    pos += buf[pos + 1] + 2;
-                    break;
-                }
-                case 255:
-                    ++pos;
-                    break;
-                default:
-                    length = int(buf[pos + 1]);
-                    std::clog << "DHCP parse : unknown option type " << int(buf[pos]) << " : ";
-                    for (int i = 0; i < length; ++i) {
-                        std::clog << int(buf[pos + 2 + i]) << " ";
-                    }
-                    std::clog << std::endl;
-                    pos += length;
-                    return msg;
-            }
-        }
+        option_parse(pos, len);
     }
     return msg;
+}
+
+void DHCPParse::option_parse(int start, int end) {
+    int cur = start;
+    while (cur < end) {
+        int length = 0;
+        short code = buf[cur];
+        if (Options.count(code)) {
+            auto val = Options.at(code);
+            if (!std::get<1>(val).empty()) {
+                std::cout << std::get<1>(val) << " : ";
+            }
+
+            switch (std::get<2>(val)) {
+                case DataType::Raw: {
+                    for (int i = 0; i < buf[cur + 1]; ++i) {
+                        if (i % 8 == 0 && i != 0) {
+                            std::cout << std::endl;
+                        }
+                        std::cout << (unsigned short) buf[cur + 2 + i] << "\t";
+                    }
+                    cur += buf[cur + 1] + 2;
+                    break;
+                }
+                case DataType::IP: {
+                    in_addr addr;
+                    for (int i = 0; i < buf[cur + 1]; i += 4) {
+                        std::memcpy(&addr, &buf[cur + 2 + i], 4);
+                        std::cout << inet_ntoa(addr) << std::endl;
+                    }
+                    cur += buf[cur + 1] + 2;
+                    break;
+                }
+                case DataType::String: {
+                    std::cout << std::string(&buf[cur + 2], &buf[cur + buf[cur + 1] + 2]);
+                    cur += buf[cur + 1] + 2;
+                    break;
+                }
+                case DataType::Short: {
+                    std::cout << ntohs(*((unsigned short *) &buf[cur + 2]));
+                    cur += 4;
+                    break;
+                }
+                case DataType::Int: {
+                    std::cout << ntohl(*((unsigned int *) &buf[cur + 2]));
+                    cur += 6;
+                    break;
+                }
+                case DataType::DHCPType: {
+                    if (MessageType.count(buf[cur + 2])) {
+                        int type = buf[cur + 2];
+                        std::cout << "DHCP " << MessageType.at(type) << std::endl;
+                    } else {
+                        std::cerr << "DHCP parse : unknown DHCP msg type";
+                    }
+                    cur += 3;
+                    break;
+                }
+                case DataType::End: {
+                    return;
+                }
+                case DataType::Pad: {
+                    ++cur;
+                    break;
+                }
+                default:
+                    break;
+            }
+            std::cout << std::endl;
+        } else {
+            length = int(buf[cur + 1]);
+            std::clog << "DHCP parse : unknown option type " << int(buf[cur]) << " : ";
+            for (int i = 0; i < length; ++i) {
+                std::clog << short(buf[cur + 2 + i]) << " ";
+            }
+            std::clog << std::endl;
+            //cur += length;
+            return;
+        }
+    }
+
 }
 
 void Debug(unsigned char *data, int len) {

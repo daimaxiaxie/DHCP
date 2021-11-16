@@ -5,25 +5,10 @@
 #ifndef DHCP_DHCP_MESSAGE_H
 #define DHCP_DHCP_MESSAGE_H
 
+#include "options.h"
 #include "header.h"
 
 const unsigned int Magic = 0x63825363;
-
-enum Type {
-    Discover,
-    Offer,
-    Request,
-    Decline,
-    ACK,
-    NAK,
-    Release,
-    Inform,
-};
-
-struct Option {
-    char op;
-    char len;
-};
 
 struct Message {
     char op;
@@ -57,11 +42,13 @@ public:
     const Message *parse(char *data, int len);
 
 private:
+    void option_parse(int start, int end);
+
+private:
     unsigned char *buf;
     int size;
     Message *msg;
     bool cookie;
-    std::vector<Option> options;
 };
 
 
