@@ -21,12 +21,12 @@ std::ostream &operator<<(std::ostream &out, const Message &message) {
     return out;
 }
 
-DHCPParse::DHCPParse() : size(512), cookie(false) {
-    buf = new unsigned char[512];
+DHCPParse::DHCPParse() : size(1024), cookie(false) {
+    buf = new unsigned char[1024];
     msg = (Message *) buf;
 }
 
-DHCPParse::DHCPParse(int size) : size(512), cookie(false) {
+DHCPParse::DHCPParse(int size) : size(size), cookie(false) {
     buf = new unsigned char[size];
     msg = (Message *) buf;
 }
@@ -50,7 +50,7 @@ const Message *DHCPParse::parse(char *data, int len) {
         throw std::length_error("DHCP parse : data incomplete");
     }
     memcpy(buf, data, len);
-    Debug((unsigned char *) buf, len);
+    //Debug((unsigned char *) buf, len);
     if (len > sizeof(Message)) {
         int pos = 236;
         if (len > sizeof(Message) + 4 && ntohl(*((unsigned int *) &buf[pos])) == Magic) {
@@ -112,7 +112,7 @@ void DHCPParse::option_parse(int start, int end) {
                 case DataType::DHCPType: {
                     if (MessageType.count(buf[cur + 2])) {
                         int type = buf[cur + 2];
-                        std::cout << "DHCP " << MessageType.at(type) << std::endl;
+                        std::cout << "DHCP " << MessageType.at(type);
                     } else {
                         std::cerr << "DHCP parse : unknown DHCP msg type";
                     }
@@ -160,5 +160,133 @@ void Debug(unsigned char *data, int len) {
     std::cout << std::endl;
 }
 
+
+DHCPGenerate::DHCPGenerate(int fd) : fd(fd) {
+    buf = new unsigned char[2048];
+    std::default_random_engine r;
+    xid = r();
+    RandomMAC();
+    Identifier();
+}
+
+DHCPGenerate::~DHCPGenerate() {
+    delete[] buf;
+}
+
+void DHCPGenerate::Show() {
+    std::cout << "Xid : " << xid << std::endl;
+    std::cout << "MAC : ";
+    for (int i = 0; i < 6; ++i) {
+        std::cout << (unsigned short) mac[i] << "\t";
+    }
+    std::cout << std::endl;
+    std::cout << "Identifier : ";
+    for (int i = 0; i < 7; ++i) {
+        std::cout << (unsigned short) identifier[i] << "\t";
+    }
+    std::cout << std::endl;
+}
+
+void DHCPGenerate::Discover() {
+    std::memset(buf, 0, 2048);
+    Message *msg = (Message *) buf;
+    msg->op = 1;
+    msg->type = 1;
+    msg->len = 6;
+    msg->ops = 0;
+    msg->id = xid;
+    msg->secs = 0;
+    msg->flag = 1 << 15;
+
+    msg->caddr = 0;
+    msg->yaddr = 0;
+    msg->gaddr = 0;
+    std::memcpy(&(msg->cmac), &mac, 6);
+
+    std::memset(&(msg->sname), 0, 64);
+    std::memset(&(msg->file), 0, 128);
+
+    int pos = 236;
+    SetInt(&buf[pos], htonl(Magic));
+    pos += 4;
+
+    buf[pos] = 53;
+    buf[pos + 1] = 1;
+    buf[pos + 2] = 1;
+    pos += 3;
+
+    buf[pos] = 57;
+    buf[pos + 1] = 2;
+    SetShort(&buf[pos + 2], htons(1152));
+    pos += 4;
+
+    buf[pos] = 61;
+    buf[pos + 1] = 7;
+    std::memcpy(&buf[pos + 2], identifier, 7);
+    pos += 9;
+
+    buf[pos] = 12;
+    buf[pos + 1] = 8;
+    std::memcpy(&buf[pos + 2], &"DHCPTest", 8);
+    pos += 10;
+
+    buf[pos] = 55;
+    buf[pos + 1] = 8;
+    buf[pos + 2] = 1;//subnet mask
+    buf[pos + 3] = 6;//dns
+    buf[pos + 4] = 15;//domain name
+    buf[pos + 5] = 44;//wins server
+    buf[pos + 6] = 3;//router
+    buf[pos + 7] = 33;//static router
+    buf[pos + 8] = 150;//tftp
+    buf[pos + 9] = 43;//vendor
+    pos += 10;
+
+    buf[pos] = 255;
+    //Debug(buf,1024);
+
+    Send("255.255.255.255");
+}
+
+void DHCPGenerate::RandomMAC() {
+    //std::default_random_engine e;
+    for (int i = 0; i < 6; ++i) {
+        mac[i] = rand() % 255;
+    }
+}
+
+void DHCPGenerate::Identifier() {
+    identifier[0] = 'S';
+    identifier[1] = 'i';
+    identifier[2] = 'm';
+    identifier[3] = 'u';
+    identifier[4] = 'l';
+    identifier[5] = (rand() % (122 - 48 + 1)) + 48;
+    identifier[6] = (rand() % 75) + 48;
+}
+
+void DHCPGenerate::SetInt(void *dest, const int val) {
+    memcpy(dest, &val, 4);
+}
+
+void DHCPGenerate::SetShort(void *dest, short val) {
+    memcpy(dest, &val, 2);
+}
+
+void DHCPGenerate::Send(std::string ip) {
+    int port = 67;
+    sockaddr_in addr{};
+    socklen_t addr_len = sizeof(addr);
+    std::memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    if (ip == "255.255.255.255") {
+        addr.sin_addr.s_addr = INADDR_BROADCAST;
+    } else {
+        addr.sin_addr.s_addr = inet_addr(ip.c_str());
+    }
+    sendto(fd, buf, 2048, 0, (sockaddr *) &addr, addr_len);
+    std::cout << "UDP send " << strerror(errno) << std::endl;
+}
 
 

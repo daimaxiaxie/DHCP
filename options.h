@@ -36,6 +36,7 @@ enum LengthType {
     L2,
     L4,
     L4X,
+    L8X,
     N,
 };
 
@@ -46,6 +47,7 @@ const std::unordered_map<int, std::tuple<LengthType, std::string, DataType>> Opt
         {6,   std::make_tuple<LengthType, std::string, DataType>(L4X, "DNS server", IP)},
         {12,  std::make_tuple<LengthType, std::string, DataType>(N, "Client host Name", String)},
         {15,  std::make_tuple<LengthType, std::string, DataType>(N, "Domain name", String)},
+        {33,  std::make_tuple<LengthType, std::string, DataType>(L8X, "Static route", IP)},
         {42,  std::make_tuple<LengthType, std::string, DataType>(L4X, "NTP server", IP)},
         {44,  std::make_tuple<LengthType, std::string, DataType>(L4X, "WINS server", IP)},
         {50,  std::make_tuple<LengthType, std::string, DataType>(L4, "Requested IP Address", IP)},
@@ -56,6 +58,7 @@ const std::unordered_map<int, std::tuple<LengthType, std::string, DataType>> Opt
         {58,  {L4, "Renewal Time Value",        Int}},
         {60,  {N,  "Vendor class identifier",   Raw}},
         {61,  {N,  "Client identifier",         Raw}},
+        {66,  {N,  "TFTP server name",         String}},
         {255, {L0, "",                          End}}
 };
 

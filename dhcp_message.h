@@ -51,6 +51,30 @@ private:
     bool cookie;
 };
 
+class DHCPGenerate{
+public:
+    DHCPGenerate(int fd);
+    ~DHCPGenerate();
+
+    void Show();
+    void Discover();
+
+private:
+    void RandomMAC();
+    void Identifier();
+    void SetInt(void *dest,int val);
+    void SetShort(void *dest,short val);
+
+    void Send(std::string ip);
+private:
+    unsigned char *buf;
+    int xid;
+    unsigned char mac[6];
+    unsigned char identifier[7];
+
+    int fd;
+};
+
 
 void Debug(unsigned char *data, int len);
 

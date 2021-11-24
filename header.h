@@ -8,6 +8,7 @@
 #include <iterator>
 #include <iostream>
 #include <cstring>
+#include <random>
 #include <thread>
 #include <atomic>
 #include <vector>
@@ -41,6 +42,7 @@ void Clean() {
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 inline void Init() {
     std::cout << "DHCP Test for Linux" << std::endl;
