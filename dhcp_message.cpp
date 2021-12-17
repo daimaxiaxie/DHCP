@@ -196,7 +196,7 @@ void DHCPGenerate::Discover() {
     msg->ops = 0;
     msg->id = xid;
     msg->secs = 0;
-    msg->flag = 1 << 15;
+    msg->flag = htons(0x8000);
 
     msg->caddr = 0;
     msg->yaddr = 0;
@@ -217,7 +217,7 @@ void DHCPGenerate::Discover() {
 
     buf[pos] = 57;
     buf[pos + 1] = 2;
-    SetShort(&buf[pos + 2], htons(1152));
+    SetShort(&buf[pos + 2], htons(512));
     pos += 4;
 
     buf[pos] = 61;
@@ -245,7 +245,7 @@ void DHCPGenerate::Discover() {
     buf[pos] = 255;
     //Debug(buf,1024);
 
-    Send("255.255.255.255");
+    Send("255.255.255.255", pos + 1);
 }
 
 void DHCPGenerate::RandomMAC() {
@@ -256,11 +256,11 @@ void DHCPGenerate::RandomMAC() {
 }
 
 void DHCPGenerate::Identifier() {
-    identifier[0] = 'S';
-    identifier[1] = 'i';
-    identifier[2] = 'm';
-    identifier[3] = 'u';
-    identifier[4] = 'l';
+    identifier[0] = 0x01;
+    identifier[1] = 'S';
+    identifier[2] = 'i';
+    identifier[3] = 'm';
+    identifier[4] = 'u';
     identifier[5] = (rand() % (122 - 48 + 1)) + 48;
     identifier[6] = (rand() % 75) + 48;
 }
@@ -273,7 +273,7 @@ void DHCPGenerate::SetShort(void *dest, short val) {
     memcpy(dest, &val, 2);
 }
 
-void DHCPGenerate::Send(std::string ip) {
+void DHCPGenerate::Send(std::string ip, int size) {
     int port = 67;
     sockaddr_in addr{};
     socklen_t addr_len = sizeof(addr);
@@ -285,7 +285,9 @@ void DHCPGenerate::Send(std::string ip) {
     } else {
         addr.sin_addr.s_addr = inet_addr(ip.c_str());
     }
-    sendto(fd, buf, 2048, 0, (sockaddr *) &addr, addr_len);
+    //int val = IP_PMTUDISC_DO;
+    //setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
+    sendto(fd, buf, size, 0, (sockaddr *) &addr, addr_len);
     std::cout << "UDP send " << strerror(errno) << std::endl;
 }
 

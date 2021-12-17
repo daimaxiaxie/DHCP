@@ -51,21 +51,27 @@ private:
     bool cookie;
 };
 
-class DHCPGenerate{
+class DHCPGenerate {
 public:
     DHCPGenerate(int fd);
+
     ~DHCPGenerate();
 
     void Show();
+
     void Discover();
 
 private:
     void RandomMAC();
-    void Identifier();
-    void SetInt(void *dest,int val);
-    void SetShort(void *dest,short val);
 
-    void Send(std::string ip);
+    void Identifier();
+
+    void SetInt(void *dest, int val);
+
+    void SetShort(void *dest, short val);
+
+    void Send(std::string ip, int size);
+
 private:
     unsigned char *buf;
     int xid;
